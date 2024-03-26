@@ -1,39 +1,70 @@
 <!DOCTYPE html>
-<html lang="en">
+<html>
 <head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Scan QR Code</title>
-    <script src="https://rawgit.com/schmich/instascan-builds/master/instascan.min.js"></script>
+    <title>QR Code Scanner</title>
+    <style>
+        /* Style untuk membuat kamera responsif */
+        #qr-reader {
+            width: 100%; /* Gunakan 100% dari lebar layar */
+            height: auto; /* Atur tinggi secara otomatis */
+        }
+        /* Opsional: Tambahkan padding atau margin sesuai kebutuhan */
+        body {
+            padding: 10px;
+            margin: 0;
+        }
+    </style>
 </head>
 <body>
-    <h1>Scan QR Code</h1>
-    <video id="preview"></video>
-    <script>
-        // Buat instance dari Instascan
-        let scanner = new Instascan.Scanner({ video: document.getElementById('preview') });
 
-        // Tangkap data QR code yang dipindai
-        scanner.addListener('scan', function (content) {
-            // Arahkan ke URL yang terdapat dalam QR code
-            window.location.href = content;
-        });
+<div id="qr-reader"></div>
 
-        // Mulai video dan mulai memindai QR code
-        Instascan.Camera.getCameras().then(function (cameras) {
-            if (cameras.length > 0) {
-                scanner.start(cameras[0]);
-            } else {
-                console.error('Tidak ada kamera yang tersedia.');
-            }
-        }).catch(function (e) {
-            console.error(e);
-        });
+<script src="https://unpkg.com/html5-qrcode"></script>
+<script>
+    function onScanSuccess(decodedText, decodedResult) {
+        // Redirect ke URL yang terkandung dalam QR Code.
+        window.location.href = decodedText;
+    }
 
-        // Mengalihkan halaman ke wartellapasbatang.net/halamanTunggu setelah satu menit
+    function onCameraScanSuccess(qrCodeMessage) {
+        // Redirect ke URL yang terkandung dalam QR Code.
+        window.location.href = qrCodeMessage;
+    }
+
+    function onCameraScanError(errorMessage) {
+        // handle on error condition, with error message.
+        console.error(`Error scanning QR Code: ${errorMessage}`);
+    }
+
+    Html5Qrcode.getCameras().then(devices => {
+        if (devices && devices.length) {
+            var cameraId = devices[0].id; // Pilih kamera pertama.
+            const html5QrCode = new Html5Qrcode("qr-reader");
+            html5QrCode.start(
+                cameraId, 
+                {
+                    fps: 10,    // Frame per second
+                    qrbox: 350  // Ukuran kotak QR Code dalam piksel
+                },
+                onCameraScanSuccess,
+                onCameraScanError
+            ).catch(err => {
+                // Start scanning failed.
+                console.error(`Unable to start scanning, error: ${err}`);
+            });
+        }
+    }).catch(err => {
+        // handle err
+        console.error(`Unable to get cameras, error: ${err}`);
+    });
+    
+    
+// Mengalihkan halaman ke wartellapasbatang.net/halamanTunggu setelah satu menit
         setTimeout(function() {
             window.location.href = "http://wartellapasbatang.net/halamanTunggu.html";
         }, 30000); // 60000 milliseconds = 1 minute
-    </script>
+    
+</script>
+
 </body>
 </html>
